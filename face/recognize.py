@@ -22,6 +22,7 @@ class FaceRecognizer:
 				ret, frame=cap.read()
 
 				if not ret:
+					time.sleep(0.05)
 					continue
 
 				rgb=cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)

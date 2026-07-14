@@ -1,4 +1,5 @@
 import sys
+import time
 
 import cv2
 import face_recognition
@@ -7,8 +8,8 @@ import os
 class CameraError(Exception):
 	pass
 
-def open_camera(index=0):
-	backend = cv2.CAP_DSHOW if sys.platform == "win32" else cv2.CAP_ANY
+def open_camera(index=0, warmup_frames=10, warmup_timeout=3):
+	backend = cv2.CAP_DSHOW if sys.platform == "win32" else cv2.CAP_V4L2
 	cap = cv2.VideoCapture(index, backend)
 
 	if not cap.isOpened():
@@ -16,6 +17,17 @@ def open_camera(index=0):
 
 	cap.set(cv2.CAP_PROP_FRAME_HEIGHT,480)
 	cap.set(cv2.CAP_PROP_FRAME_WIDTH,640)
+
+	# Discard initial frames: the camera (esp. USB/V4L2) needs a moment
+	# to start delivering frames, otherwise early cap.read() calls fail
+	# with a "select() timeout" and burn the caller's read budget.
+	deadline = time.time() + warmup_timeout
+	for _ in range(warmup_frames):
+		if time.time() > deadline:
+			break
+		ret, _ = cap.read()
+		if ret:
+			break
 
 	return cap
 
