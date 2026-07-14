@@ -6,7 +6,7 @@ class CameraError(Exception):
 	pass
 
 def open_camera(index=0):
-	cap = cv2.VideoCapture(index, cv2.CAP_V4L2)
+	cap = cv2.VideoCapture(index)
 
 	if not cap.isOpened():
 		raise CameraError("Cannot Open Camera")
@@ -19,8 +19,8 @@ def open_camera(index=0):
 def close_camera(cap):
 	if cap:
 		cap.release()
-	
-	cv.destroyAllWindows()
+
+	cv2.destroyAllWindows()
 
 def capture_frame(cap):
 	ret,frame = cap.read()

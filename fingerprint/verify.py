@@ -2,7 +2,7 @@ from .serial_reader import SerialReader
 from .database import FingerprintDatabase
 
 class FingerprintVerifier:
-	def __init(self):
+	def __init__(self):
 		self.serial = SerialReader()
 		self.db = FingerprintDatabase()
 

@@ -1,4 +1,6 @@
 import pickle
+import time
+
 import cv2
 import face_recognition
 
@@ -10,6 +12,34 @@ class FaceRecognizer:
 			data=pickle.load(f)
 		self.encodings=data["encodings"]
 		self.names=data["names"]
+
+	def verify(self,username,timeout=5):
+		cap=open_camera()
+		deadline=time.time()+timeout
+
+		try:
+			while time.time()<deadline:
+				ret, frame=cap.read()
+
+				if not ret:
+					continue
+
+				rgb=cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+				locations=face_recognition.face_locations(rgb)
+				encodings=face_recognition.face_encodings(rgb, locations)
+
+				for encoding in encodings:
+					matches=face_recognition.compare_faces(
+						self.encodings,encoding,tolerance=0.45)
+
+					if True in matches:
+						index=matches.index(True)
+						if self.names[index]==username:
+							return True
+
+			return False
+		finally:
+			close_camera(cap)
 
 	def recognize(self):
 		cap=open_camera()
