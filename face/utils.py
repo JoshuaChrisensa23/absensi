@@ -8,7 +8,7 @@ import os
 class CameraError(Exception):
 	pass
 
-def open_camera(index=0, warmup_frames=10, warmup_timeout=5, retries=3):
+def open_camera(index=0, warmup_frames=30, warmup_timeout=5, retries=3):
 	backend = cv2.CAP_DSHOW if sys.platform == "win32" else cv2.CAP_V4L2
 
 	# Some USB webcams are flaky on the Pi's onboard USB controller: a single
@@ -33,14 +33,17 @@ def open_camera(index=0, warmup_frames=10, warmup_timeout=5, retries=3):
 
 		# Discard initial frames: the camera (esp. USB/V4L2) needs a moment
 		# to start delivering frames, otherwise early cap.read() calls fail
-		# with a "select() timeout" and burn the caller's read budget.
+		# with a "select() timeout" and burn the caller's read budget. Also
+		# reject frames that are still essentially black - auto-exposure on
+		# some USB webcams takes several frames to ramp up after opening, so
+		# a successful read() doesn't always mean a usable picture.
 		deadline = time.time() + warmup_timeout
 		got_frame = False
 		for _ in range(warmup_frames):
 			if time.time() > deadline:
 				break
-			ret, _ = cap.read()
-			if ret:
+			ret, test_frame = cap.read()
+			if ret and test_frame.mean() > 10:
 				got_frame = True
 				break
 
