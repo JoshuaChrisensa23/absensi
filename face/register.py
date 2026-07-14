@@ -2,7 +2,7 @@ import os
 import cv2
 import face_recognition
 
-from .utils import open_camera, close_camera
+from .utils import open_camera, close_camera, show_preview
 
 class FaceRegister:
 	def __init__(self, sample_dir="face/samples"):
@@ -32,8 +32,7 @@ class FaceRegister:
 
 			for top, right, bottom, left in locations:
 				cv2.rectangle(frame, (left,top), (right, bottom), (0,255,0), 2)
-			cv2.imshow("Register Face", frame)
-			key=cv2.waitKey(1)
+			key=show_preview("Register Face", frame)
 
 			if key ==27:
 				break

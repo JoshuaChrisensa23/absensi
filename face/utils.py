@@ -44,6 +44,25 @@ def open_camera(index=0, warmup_frames=10, warmup_timeout=3):
 
 	return cap
 
+_preview_available = True
+
+def show_preview(window_name, frame):
+	"""Show a frame if a display is available; degrade to headless otherwise
+	(common on Raspberry Pi run over SSH without X). Returns the pressed key
+	(masked to 0-255) or -1 if no key/preview."""
+	global _preview_available
+
+	if not _preview_available:
+		return -1
+
+	try:
+		cv2.imshow(window_name, frame)
+		return cv2.waitKey(1) & 0xFF
+	except cv2.error:
+		_preview_available = False
+		print(f"[WARN] No display available, continuing headless (window '{window_name}' skipped).")
+		return -1
+
 def close_camera(cap):
 	if cap:
 		cap.release()

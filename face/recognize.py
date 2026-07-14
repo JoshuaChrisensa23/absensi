@@ -4,7 +4,7 @@ import time
 import cv2
 import face_recognition
 
-from .utils import open_camera, close_camera, CameraError
+from .utils import open_camera, close_camera, show_preview, CameraError
 
 class FaceRecognizer:
 	def __init__(self,encoding_file="face/encodings.pkl"):
@@ -13,7 +13,7 @@ class FaceRecognizer:
 		self.encodings=data["encodings"]
 		self.names=data["names"]
 
-	def verify(self,username,timeout=5):
+	def verify(self,username,timeout=10):
 		cap=open_camera()
 		deadline=time.time()+timeout
 		matched=False
@@ -53,8 +53,7 @@ class FaceRecognizer:
 					if True in matches and self.names[matches.index(True)]==username:
 						matched=True
 
-				cv2.imshow("Verify", frame)
-				if cv2.waitKey(1) & 0xFF == 27:
+				if show_preview("Verify", frame) == 27:
 					break
 
 				if matched:
@@ -94,9 +93,7 @@ class FaceRecognizer:
 				cv2.rectangle(frame, (left,top), (right,bottom), (0,255,0), 2)
 				cv2.putText(frame, name, (left, top-10), cv2.FONT_HERSHEY_SIMPLEX,0.7,(0,255,0),2)
 
-			cv2.imshow("Recognition", frame)
-
-			if cv2.waitKey(1)==27:
+			if show_preview("Recognition", frame) == 27:
 				break
 
 		close_camera(cap)
