@@ -22,8 +22,13 @@ class FaceRegister:
 			ret, frame=cap.read()
 			if not ret:
 				continue
-			rgb=cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-			locations=face_recognition.face_locations(rgb)
+
+			small=cv2.resize(frame, (0,0), fx=0.25, fy=0.25)
+			rgb=cv2.cvtColor(small, cv2.COLOR_BGR2RGB)
+			locations=[
+				(top*4, right*4, bottom*4, left*4)
+				for top, right, bottom, left in face_recognition.face_locations(rgb)
+			]
 
 			for top, right, bottom, left in locations:
 				cv2.rectangle(frame, (left,top), (right, bottom), (0,255,0), 2)
