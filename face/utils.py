@@ -1,3 +1,5 @@
+import sys
+
 import cv2
 import face_recognition
 import os
@@ -6,7 +8,8 @@ class CameraError(Exception):
 	pass
 
 def open_camera(index=0):
-	cap = cv2.VideoCapture(index)
+	backend = cv2.CAP_DSHOW if sys.platform == "win32" else cv2.CAP_ANY
+	cap = cv2.VideoCapture(index, backend)
 
 	if not cap.isOpened():
 		raise CameraError("Cannot Open Camera")
