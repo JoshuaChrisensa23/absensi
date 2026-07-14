@@ -48,7 +48,7 @@ class FaceRegister:
 				if count >= total_images:
 					break
 
-	close_camera(cap)
+		close_camera(cap)
 
-	print()
-	print(f"Registration Finished({count}images)")
+		print()
+		print(f"Registration Finished({count}images)")

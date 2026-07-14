@@ -25,6 +25,7 @@ class FingerprintDatabase:
 
 	def add_user(self, finger_id, username):
 		users =self.load()
+		users = [u for u in users if u["finger_id"] != finger_id]
 		users.append({
 			"finger_id": finger_id,
 			"username": username

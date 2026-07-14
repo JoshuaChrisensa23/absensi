@@ -58,7 +58,7 @@ class FaceEncoder:
 		with open(filename, "rb") as f:
 			data=pickle.load(f)
 		self.encodings=data["encodings"]
-		self.names=dat["names"]
+		self.names=data["names"]
 
 		print("Encoding Loaded")
 
