@@ -8,14 +8,14 @@ class FaceDatabase:
 			with open(db_file, "w") as f:
 				json.dump([], f)
 	def load(self):
-		with open(db_file, "w") as f:
+		with open(self.db_file, "r") as f:
 			return json.load(f)
 
 	def save(self,data):
-		with open(db_file, "w") as f:
+		with open(self.db_file, "w") as f:
 			json.dump(data,f,indent=4)
 
-	def add_user(self,usernmae,finger_id):
+	def add_user(self,username,finger_id):
 		users=self.load()
 		users.append({
 			"username": username,

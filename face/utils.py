@@ -13,21 +13,34 @@ def open_camera(index=0, warmup_frames=10, warmup_timeout=3):
 	cap = cv2.VideoCapture(index, backend)
 
 	if not cap.isOpened():
-		raise CameraError("Cannot Open Camera")
+		raise CameraError(f"Cannot Open Camera (index={index})")
 
-	cap.set(cv2.CAP_PROP_FRAME_HEIGHT,480)
+	# Many USB/V4L2 webcams only stream in MJPG at higher resolutions;
+	# without requesting it explicitly the driver may fail to negotiate
+	# a working format and every read() times out via select().
+	cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG"))
 	cap.set(cv2.CAP_PROP_FRAME_WIDTH,640)
+	cap.set(cv2.CAP_PROP_FRAME_HEIGHT,480)
 
 	# Discard initial frames: the camera (esp. USB/V4L2) needs a moment
 	# to start delivering frames, otherwise early cap.read() calls fail
 	# with a "select() timeout" and burn the caller's read budget.
 	deadline = time.time() + warmup_timeout
+	got_frame = False
 	for _ in range(warmup_frames):
 		if time.time() > deadline:
 			break
 		ret, _ = cap.read()
 		if ret:
+			got_frame = True
 			break
+
+	if not got_frame:
+		cap.release()
+		raise CameraError(
+			f"Camera opened but never delivered a frame (index={index}). "
+			"Check `v4l2-ctl --list-devices` / `--list-formats-ext` on the device."
+		)
 
 	return cap
 

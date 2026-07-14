@@ -4,7 +4,7 @@ import time
 import cv2
 import face_recognition
 
-from .utils import open_camera, close_camera
+from .utils import open_camera, close_camera, CameraError
 
 class FaceRecognizer:
 	def __init__(self,encoding_file="face/encodings.pkl"):
