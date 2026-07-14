@@ -19,7 +19,10 @@ def open_camera(index=0, warmup_frames=10, warmup_timeout=5, retries=3):
 		cap = cv2.VideoCapture(index, backend)
 
 		if not cap.isOpened():
-			raise CameraError(f"Cannot Open Camera (index={index})")
+			cap.release()
+			print(f"[WARN] Camera open attempt {attempt}/{retries} failed (index={index}), retrying...")
+			time.sleep(0.5)
+			continue
 
 		# Many USB/V4L2 webcams only stream in MJPG at higher resolutions;
 		# without requesting it explicitly the driver may fail to negotiate
@@ -49,28 +52,20 @@ def open_camera(index=0, warmup_frames=10, warmup_timeout=5, retries=3):
 		time.sleep(0.5)
 
 	raise CameraError(
-		f"Camera opened but never delivered a frame (index={index}) after {retries} attempts. "
+		f"Camera could not be opened or never delivered a frame (index={index}) after {retries} attempts. "
 		"Check `v4l2-ctl --list-devices` / `--list-formats-ext` on the device, and on Raspberry Pi "
 		"make sure the camera has enough USB power (use a powered hub if it disconnects under load)."
 	)
-
-_preview_available = True
 
 def show_preview(window_name, frame):
 	"""Show a frame if a display is available; degrade to headless otherwise
 	(common on Raspberry Pi run over SSH without X). Returns the pressed key
 	(masked to 0-255) or -1 if no key/preview."""
-	global _preview_available
-
-	if not _preview_available:
-		return -1
-
 	try:
 		cv2.imshow(window_name, frame)
 		return cv2.waitKey(1) & 0xFF
-	except cv2.error:
-		_preview_available = False
-		print(f"[WARN] No display available, continuing headless (window '{window_name}' skipped).")
+	except cv2.error as e:
+		print(f"[WARN] Preview unavailable this frame (window '{window_name}'): {e}")
 		return -1
 
 def close_camera(cap):
