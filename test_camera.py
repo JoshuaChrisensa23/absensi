@@ -12,7 +12,7 @@ while True:
 		break
 
 	cv2.imshow("Camera Test", frame)
-	if cv2.waitKey(1) == 27:
+	if cv2.waitKey(1) & 0xFF == 27:
 		break
 
 close_camera(cap)

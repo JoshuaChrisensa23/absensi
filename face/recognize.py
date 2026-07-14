@@ -16,6 +16,7 @@ class FaceRecognizer:
 	def verify(self,username,timeout=5):
 		cap=open_camera()
 		deadline=time.time()+timeout
+		matched=False
 
 		try:
 			while time.time()<deadline:
@@ -29,16 +30,33 @@ class FaceRecognizer:
 				locations=face_recognition.face_locations(rgb)
 				encodings=face_recognition.face_encodings(rgb, locations)
 
-				for encoding in encodings:
+				for encoding, (top,right,bottom,left) in zip(encodings,locations):
 					matches=face_recognition.compare_faces(
 						self.encodings,encoding,tolerance=0.45)
 
+					name="Unknown"
+					color=(0,0,255)
+
 					if True in matches:
 						index=matches.index(True)
-						if self.names[index]==username:
-							return True
+						name=self.names[index]
+						if name==username:
+							color=(0,255,0)
 
-			return False
+					cv2.rectangle(frame, (left,top), (right,bottom), color, 2)
+					cv2.putText(frame, name, (left, top-10), cv2.FONT_HERSHEY_SIMPLEX,0.7,color,2)
+
+					if True in matches and self.names[matches.index(True)]==username:
+						matched=True
+
+				cv2.imshow("Verify", frame)
+				if cv2.waitKey(1) & 0xFF == 27:
+					break
+
+				if matched:
+					break
+
+			return matched
 		finally:
 			close_camera(cap)
 
