@@ -8,41 +8,51 @@ import os
 class CameraError(Exception):
 	pass
 
-def open_camera(index=0, warmup_frames=10, warmup_timeout=5):
+def open_camera(index=0, warmup_frames=10, warmup_timeout=5, retries=3):
 	backend = cv2.CAP_DSHOW if sys.platform == "win32" else cv2.CAP_V4L2
-	cap = cv2.VideoCapture(index, backend)
 
-	if not cap.isOpened():
-		raise CameraError(f"Cannot Open Camera (index={index})")
+	# Some USB webcams are flaky on the Pi's onboard USB controller: a single
+	# cap.read() can eat the whole warmup budget in one "select() timeout"
+	# even though the device works fine a moment later. Reopening the device
+	# a few times is more reliable than one long wait.
+	for attempt in range(1, retries + 1):
+		cap = cv2.VideoCapture(index, backend)
 
-	# Many USB/V4L2 webcams only stream in MJPG at higher resolutions;
-	# without requesting it explicitly the driver may fail to negotiate
-	# a working format and every read() times out via select().
-	cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG"))
-	cap.set(cv2.CAP_PROP_FRAME_WIDTH,640)
-	cap.set(cv2.CAP_PROP_FRAME_HEIGHT,480)
+		if not cap.isOpened():
+			raise CameraError(f"Cannot Open Camera (index={index})")
 
-	# Discard initial frames: the camera (esp. USB/V4L2) needs a moment
-	# to start delivering frames, otherwise early cap.read() calls fail
-	# with a "select() timeout" and burn the caller's read budget.
-	deadline = time.time() + warmup_timeout
-	got_frame = False
-	for _ in range(warmup_frames):
-		if time.time() > deadline:
-			break
-		ret, _ = cap.read()
-		if ret:
-			got_frame = True
-			break
+		# Many USB/V4L2 webcams only stream in MJPG at higher resolutions;
+		# without requesting it explicitly the driver may fail to negotiate
+		# a working format and every read() times out via select().
+		cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG"))
+		cap.set(cv2.CAP_PROP_FRAME_WIDTH,640)
+		cap.set(cv2.CAP_PROP_FRAME_HEIGHT,480)
 
-	if not got_frame:
+		# Discard initial frames: the camera (esp. USB/V4L2) needs a moment
+		# to start delivering frames, otherwise early cap.read() calls fail
+		# with a "select() timeout" and burn the caller's read budget.
+		deadline = time.time() + warmup_timeout
+		got_frame = False
+		for _ in range(warmup_frames):
+			if time.time() > deadline:
+				break
+			ret, _ = cap.read()
+			if ret:
+				got_frame = True
+				break
+
+		if got_frame:
+			return cap
+
 		cap.release()
-		raise CameraError(
-			f"Camera opened but never delivered a frame (index={index}). "
-			"Check `v4l2-ctl --list-devices` / `--list-formats-ext` on the device."
-		)
+		print(f"[WARN] Camera warmup attempt {attempt}/{retries} failed (index={index}), retrying...")
+		time.sleep(0.5)
 
-	return cap
+	raise CameraError(
+		f"Camera opened but never delivered a frame (index={index}) after {retries} attempts. "
+		"Check `v4l2-ctl --list-devices` / `--list-formats-ext` on the device, and on Raspberry Pi "
+		"make sure the camera has enough USB power (use a powered hub if it disconnects under load)."
+	)
 
 _preview_available = True
 
