@@ -23,10 +23,10 @@ class FaceRegister:
 			if not ret:
 				continue
 
-			small=cv2.resize(frame, (0,0), fx=0.25, fy=0.25)
+			small=cv2.resize(frame, (0,0), fx=0.5, fy=0.5)
 			rgb=cv2.cvtColor(small, cv2.COLOR_BGR2RGB)
 			locations=[
-				(top*4, right*4, bottom*4, left*4)
+				(top*2, right*2, bottom*2, left*2)
 				for top, right, bottom, left in face_recognition.face_locations(rgb)
 			]
 

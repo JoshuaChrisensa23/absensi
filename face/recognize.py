@@ -27,9 +27,9 @@ class FaceRecognizer:
 					continue
 
 				rgb=cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-				small=cv2.resize(rgb, (0,0), fx=0.25, fy=0.25)
+				small=cv2.resize(rgb, (0,0), fx=0.5, fy=0.5)
 				locations=[
-					(top*4, right*4, bottom*4, left*4)
+					(top*2, right*2, bottom*2, left*2)
 					for top, right, bottom, left in face_recognition.face_locations(small)
 				]
 				encodings=face_recognition.face_encodings(rgb, locations)
@@ -73,9 +73,9 @@ class FaceRecognizer:
 				return False
 
 			rgb=cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-			small=cv2.resize(rgb, (0,0), fx=0.25, fy=0.25)
+			small=cv2.resize(rgb, (0,0), fx=0.5, fy=0.5)
 			locations=[
-				(top*4, right*4, bottom*4, left*4)
+				(top*2, right*2, bottom*2, left*2)
 				for top, right, bottom, left in face_recognition.face_locations(small)
 			]
 			encodings=face_recognition.face_encodings(rgb, locations)
