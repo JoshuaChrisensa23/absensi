@@ -28,13 +28,11 @@ class FaceRecognizer:
 
 				rgb=cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 				small=cv2.resize(rgb, (0,0), fx=0.5, fy=0.5)
-				locations=[
-					(top*2, right*2, bottom*2, left*2)
-					for top, right, bottom, left in face_recognition.face_locations(small)
-				]
-				encodings=face_recognition.face_encodings(rgb, locations)
+				small_locations=face_recognition.face_locations(small)
+				encodings=face_recognition.face_encodings(small, small_locations)
 
-				for encoding, (top,right,bottom,left) in zip(encodings,locations):
+				for encoding, (top,right,bottom,left) in zip(encodings,small_locations):
+					top, right, bottom, left = top*2, right*2, bottom*2, left*2
 					matches=face_recognition.compare_faces(
 						self.encodings,encoding,tolerance=0.45)
 
@@ -74,13 +72,11 @@ class FaceRecognizer:
 
 			rgb=cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 			small=cv2.resize(rgb, (0,0), fx=0.5, fy=0.5)
-			locations=[
-				(top*2, right*2, bottom*2, left*2)
-				for top, right, bottom, left in face_recognition.face_locations(small)
-			]
-			encodings=face_recognition.face_encodings(rgb, locations)
+			small_locations=face_recognition.face_locations(small)
+			encodings=face_recognition.face_encodings(small, small_locations)
 
-			for encoding, (top,right,bottom,left)in zip(encodings,locations):
+			for encoding, (top,right,bottom,left) in zip(encodings,small_locations):
+				top, right, bottom, left = top*2, right*2, bottom*2, left*2
 				matches=face_recognition.compare_faces(
 					self.encodings,encoding,tolerance=0.45 )
 

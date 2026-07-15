@@ -8,7 +8,7 @@ import os
 class CameraError(Exception):
 	pass
 
-def open_camera(index=0, warmup_frames=30, warmup_timeout=5, retries=3):
+def open_camera(index=0, warmup_frames=10, warmup_timeout=2, retries=3):
 	backend = cv2.CAP_DSHOW if sys.platform == "win32" else cv2.CAP_V4L2
 
 	# Some USB webcams are flaky on the Pi's onboard USB controller: a single
