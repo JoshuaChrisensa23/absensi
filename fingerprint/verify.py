@@ -10,17 +10,25 @@ class FingerprintVerifier:
 		print()
 		print("Waiting Fingerprint")
 		while True:
-			result = self.serial.read()
-			if result is None:
-				continue
-			if result["status"] == "MATCH":
-				finger = result["finger_id"]
-				user = self.db.get_user(finger)
-				if user:
-					print()
-					print("Verified")
-					print(user)
-					return user
-				print("Fingerprint not registered")
-			elif result["status"] == "NO_MATCH":
-				print("Unknown Finger")
+			user = self.poll()
+			if user is not None:
+				return user
+
+	def poll(self):
+		"""Non-blocking single check. Returns the matched user dict, or None
+		if nothing arrived / no match this call."""
+		result = self.serial.read()
+		if result is None:
+			return None
+		if result["status"] == "MATCH":
+			finger = result["finger_id"]
+			user = self.db.get_user(finger)
+			if user:
+				print()
+				print("Verified")
+				print(user)
+				return user
+			print("Fingerprint not registered")
+		elif result["status"] == "NO_MATCH":
+			print("Unknown Finger")
+		return None
