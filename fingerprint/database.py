@@ -31,3 +31,10 @@ class FingerprintDatabase:
 			"username": username
 		})
 		self.save(users)
+
+	def remove_by_username(self, username):
+		users=self.load()
+		remaining=[u for u in users if u["username"] != username]
+		removed=len(users) - len(remaining)
+		self.save(remaining)
+		return removed

@@ -8,7 +8,14 @@ from .utils import open_camera, close_camera, show_preview, CameraError
 
 class FaceRecognizer:
 	def __init__(self,encoding_file="face/encodings.pkl"):
-		with open(encoding_file,"rb") as f:
+		self.encoding_file=encoding_file
+		self.reload()
+
+	def reload(self):
+		"""(Re)load encodings.pkl from disk. Call after rebuilding it, e.g.
+		following a delete-user operation, so the running process picks up
+		the change without restarting."""
+		with open(self.encoding_file,"rb") as f:
 			data=pickle.load(f)
 		self.encodings=data["encodings"]
 		self.names=data["names"]
